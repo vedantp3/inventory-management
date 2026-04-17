@@ -9,7 +9,7 @@ pipeline {
         stage('Clone Code') {
             steps {
                 echo "Cloning repository..."
-                git branch: 'main', url: 'https://github.com/YOUR-USERNAME/inventory-management.git'
+                git branch: 'main', url: 'https://github.com/vedantp3/inventory-management.git'
             }
         }
 
