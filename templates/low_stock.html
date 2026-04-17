@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Low Stock — StockPilot{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">LOW STOCK ALERTS</div>
+    <div class="page-sub">{{ items|length }} item{{ 's' if items|length != 1 }} need restocking</div>
+  </div>
+  <a href="/products" class="btn btn-ghost">← All Products</a>
+</div>
+
+{% if items %}
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Current Qty</th>
+          <th>Threshold</th>
+          <th>Shortage</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td style="font-weight: 500;">{{ item.name }}</td>
+          <td><span class="badge badge-cat">{{ item.category_name or '—' }}</span></td>
+          <td style="color: var(--red); font-family: var(--mono); font-weight: 700;">{{ item.quantity }}</td>
+          <td style="font-family: var(--mono); color: var(--muted);">{{ item.threshold }}</td>
+          <td style="color: var(--red); font-family: var(--mono);">-{{ item.threshold - item.quantity }}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm"
+              onclick="openStockModal({{ item.id }}, '{{ item.name }}')">
+              + Restock
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 60px;">
+  <div style="font-size: 40px; margin-bottom: 16px;">✓</div>
+  <div style="font-family: var(--mono); font-size: 14px; color: var(--green); margin-bottom: 8px;">
+    ALL ITEMS WELL STOCKED
+  </div>
+  <div style="color: var(--muted); font-size: 13px;">No products are below their reorder threshold.</div>
+</div>
+{% endif %}
+
+<!-- Stock Update Modal -->
+<div class="modal-backdrop" id="stockModal">
+  <div class="modal">
+    <h3>RESTOCK ITEM</h3>
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;" id="modalProductName"></p>
+    <form method="POST" id="stockForm">
+      <div class="form-group">
+        <label class="form-label">Add Quantity</label>
+        <input class="form-input" name="change" type="number" min="1" placeholder="e.g. 50" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reason</label>
+        <input class="form-input" name="reason" placeholder="e.g. New shipment received" required>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" type="submit">Restock</button>
+        <button class="btn btn-ghost" type="button" onclick="closeStockModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openStockModal(id, name) {
+    document.getElementById('stockForm').action = '/products/' + id + '/stock';
+    document.getElementById('modalProductName').textContent = name;
+    document.getElementById('stockModal').classList.add('open');
+  }
+  function closeStockModal() {
+    document.getElementById('stockModal').classList.remove('open');
+  }
+  document.getElementById('stockModal').addEventListener('click', function(e) {
+    if (e.target === this) closeStockModal();
+  });
+</script>
+{% endblock %}

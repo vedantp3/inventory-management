@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Edit Product — StockPilot{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">EDIT PRODUCT</div>
+    <div class="page-sub">Update details for "{{ product.name }}"</div>
+  </div>
+  <a href="/products" class="btn btn-ghost">← Back</a>
+</div>
+
+<div class="card" style="max-width: 560px;">
+  <form method="POST" action="/products/{{ product.id }}/edit">
+    <div class="form-group">
+      <label class="form-label">Product Name</label>
+      <input class="form-input" name="name" value="{{ product.name }}" required>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-input" name="category_id" required>
+          {% for cat in categories %}
+          <option value="{{ cat.id }}" {{ 'selected' if cat.id == product.category_id }}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price (₹)</label>
+        <input class="form-input" name="price" type="number" step="0.01" min="0" value="{{ product.price }}" required>
+      </div>
+    </div>
+    <div class="form-group" style="max-width: 260px;">
+      <label class="form-label">Low Stock Threshold</label>
+      <input class="form-input" name="threshold" type="number" min="1" value="{{ product.threshold }}" required>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-primary" type="submit">Save Changes</button>
+      <a href="/products" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

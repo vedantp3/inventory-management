@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — StockPilot{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">DASHBOARD</div>
+    <div class="page-sub">Inventory overview at a glance</div>
+  </div>
+  <a href="/products/add" class="btn btn-primary">+ Add Product</a>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total Products</div>
+    <div class="stat-value accent">{{ total_products }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Low Stock Alerts</div>
+    <div class="stat-value {{ 'red' if low_stock_count > 0 else '' }}">{{ low_stock_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Inventory Value (₹)</div>
+    <div class="stat-value">{{ "{:,.2f}".format(total_value) }}</div>
+  </div>
+</div>
+
+{% if low_stock_count > 0 %}
+<div class="alert alert-warning" style="margin-bottom: 28px;">
+  ⚠ {{ low_stock_count }} item{{ 's' if low_stock_count > 1 }} below reorder threshold —
+  <a href="/low-stock" style="color: inherit; font-weight: 600;">View all →</a>
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <div class="card">
+    <div class="card-title">Recent Stock Activity</div>
+    {% if recent_logs %}
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Change</th>
+          <th>Reason</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in recent_logs %}
+        <tr>
+          <td>{{ log.product_name }}</td>
+          <td>
+            <span class="{{ 'change-pos' if log.change_amount > 0 else 'change-neg' }}">
+              {{ '+' if log.change_amount > 0 else '' }}{{ log.change_amount }}
+            </span>
+          </td>
+          <td style="color: var(--muted); font-size: 12px;">{{ log.reason }}</td>
+          <td style="color: var(--muted); font-size: 12px; font-family: var(--mono);">
+            {{ log.logged_at.strftime('%d %b, %H:%M') }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--muted); font-size: 13px;">No stock activity yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚠ Low Stock Items</div>
+    {% if low_stock_items %}
+    <table>
+      <thead>
+        <tr><th>Product</th><th>Qty</th><th>Threshold</th></tr>
+      </thead>
+      <tbody>
+        {% for item in low_stock_items %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td style="color: var(--red); font-family: var(--mono); font-weight: 700;">{{ item.quantity }}</td>
+          <td style="color: var(--muted); font-family: var(--mono);">{{ item.threshold }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="margin-top: 14px;">
+      <a href="/low-stock" class="btn btn-ghost btn-sm">View all low stock →</a>
+    </div>
+    {% else %}
+    <p style="color: var(--green); font-size: 13px;">✓ All items are well stocked.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

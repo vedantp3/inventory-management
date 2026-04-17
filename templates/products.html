@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Products — StockPilot{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">PRODUCTS</div>
+    <div class="page-sub">{{ products|length }} item{{ 's' if products|length != 1 }} found</div>
+  </div>
+  <a href="/products/add" class="btn btn-primary">+ Add Product</a>
+</div>
+
+<!-- Search + Filter -->
+<form method="GET" action="/products" class="search-bar">
+  <input class="form-input" name="search" placeholder="Search products..." value="{{ search }}">
+  <select class="form-input" name="category" style="max-width: 180px;">
+    <option value="">All Categories</option>
+    {% for cat in categories %}
+    <option value="{{ cat.name }}" {{ 'selected' if selected_category == cat.name }}>{{ cat.name }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-ghost" type="submit">Filter</button>
+  {% if search or selected_category %}
+  <a href="/products" class="btn btn-ghost">Clear</a>
+  {% endif %}
+</form>
+
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product Name</th>
+          <th>Category</th>
+          <th>Price (₹)</th>
+          <th>Quantity</th>
+          <th>Threshold</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if products %}
+          {% for p in products %}
+          <tr>
+            <td style="color: var(--muted); font-family: var(--mono); font-size: 12px;">{{ p.id }}</td>
+            <td style="font-weight: 500;">{{ p.name }}</td>
+            <td><span class="badge badge-cat">{{ p.category_name or '—' }}</span></td>
+            <td style="font-family: var(--mono);">{{ "{:,.2f}".format(p.price) }}</td>
+            <td style="font-family: var(--mono); font-weight: 700;
+              color: {{ 'var(--red)' if p.quantity < p.threshold else 'var(--green)' }}">
+              {{ p.quantity }}
+            </td>
+            <td style="font-family: var(--mono); color: var(--muted);">{{ p.threshold }}</td>
+            <td>
+              {% if p.quantity < p.threshold %}
+                <span class="badge badge-low">LOW</span>
+              {% else %}
+                <span class="badge badge-ok">OK</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button class="btn btn-ghost btn-sm"
+                  onclick="openStockModal({{ p.id }}, '{{ p.name }}')">
+                  ± Stock
+                </button>
+                <a href="/products/{{ p.id }}/edit" class="btn btn-ghost btn-sm">Edit</a>
+                <form method="POST" action="/products/{{ p.id }}/delete"
+                  onsubmit="return confirm('Delete {{ p.name }}?')">
+                  <button class="btn btn-danger btn-sm" type="submit">Del</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align: center; color: var(--muted); padding: 40px;">
+              No products found. <a href="/products/add" style="color: var(--accent);">Add one →</a>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Stock Update Modal -->
+<div class="modal-backdrop" id="stockModal">
+  <div class="modal">
+    <h3>UPDATE STOCK</h3>
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;" id="modalProductName"></p>
+    <form method="POST" id="stockForm">
+      <div class="form-group">
+        <label class="form-label">Change Amount</label>
+        <input class="form-input" name="change" type="number" placeholder="+10 to restock, -5 to reduce" required>
+        <p style="font-size: 11px; color: var(--muted); margin-top: 5px;">Use positive (+) to add stock, negative (−) to reduce.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reason</label>
+        <input class="form-input" name="reason" placeholder="e.g. New shipment, Sold to customer" required>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" type="submit">Update</button>
+        <button class="btn btn-ghost" type="button" onclick="closeStockModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openStockModal(id, name) {
+    document.getElementById('stockForm').action = '/products/' + id + '/stock';
+    document.getElementById('modalProductName').textContent = name;
+    document.getElementById('stockModal').classList.add('open');
+  }
+  function closeStockModal() {
+    document.getElementById('stockModal').classList.remove('open');
+  }
+  document.getElementById('stockModal').addEventListener('click', function(e) {
+    if (e.target === this) closeStockModal();
+  });
+</script>
+{% endblock %}
