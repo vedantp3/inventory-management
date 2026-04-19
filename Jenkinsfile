@@ -23,10 +23,10 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 echo "Tearing down existing containers..."
-                sh 'docker compose down || true'
+                sh 'docker-compose down || true'
 
                 echo "Starting services..."
-                sh 'docker compose up -d --build'
+                sh 'docker-compose up -d --build'
             }
         }
 
@@ -47,7 +47,7 @@ pipeline {
         }
         failure {
             echo "❌ Deployment failed. Check console output above."
-            sh 'docker compose logs --tail=50 || true'
+            sh 'docker-compose logs --tail=50 || true'
         }
     }
 }
